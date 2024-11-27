@@ -1,0 +1,24 @@
+name: 'http-artifact-action'
+description: 'Send artifact content via HTTP POST'
+branding:
+  icon: 'activity'
+  color: 'black'
+inputs:
+  input:
+    description: 'File name to read contents and send'
+    required: true
+  url:
+    description: 'URL to send contents to'
+    required: true
+  field_name:
+    description: 'Field name to append files to'
+    required: false
+    default: 'files'
+
+runs:
+  using: 'docker'
+  image: 'docker://edvinaskrucas/http-artifact-action'
+  args:
+    - '${{ inputs.input }}'
+    - '${{ inputs.url }}'
+    - '${{ inputs.field_name }}'
