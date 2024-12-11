@@ -14,6 +14,10 @@ inputs:
     description: 'Field name to append files to'
     required: false
     default: 'files'
+  data:
+    description: 'Extra data to send'
+    required: false
+    default: ''
 
 runs:
   using: 'docker'
@@ -22,3 +26,4 @@ runs:
     - '${{ inputs.input }}'
     - '${{ inputs.url }}'
     - '${{ inputs.field_name }}'
+    - '${{ inputs.data }}'

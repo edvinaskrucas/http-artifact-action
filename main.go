@@ -7,18 +7,20 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 )
 
 func main() {
-	input := flag.String("input", "", "File name to read contents and send")
-	url := flag.String("url", "", "URL to send contents to")
-	fieldName := flag.String("field-name", "files", "Field name to append files to")
+	inputFlag := flag.String("input", "", "File name to read contents and send")
+	urlFlag := flag.String("url", "", "URL to send contents to")
+	fieldNameFlag := flag.String("field-name", "files", "Field name to append files to")
+	dataFlag := flag.String("data", "", "Extra data to send")
 
 	flag.Parse()
 
-	filePaths := strings.Split(*input, ",")
+	filePaths := strings.Split(*inputFlag, ",")
 
 	if len(filePaths) == 0 {
 		fmt.Println("Input file name must be specified")
@@ -26,13 +28,13 @@ func main() {
 		return
 	}
 
-	if len(*url) == 0 {
+	if len(*urlFlag) == 0 {
 		fmt.Println("URL file name must be specified")
 
 		return
 	}
 
-	if len(*fieldName) == 0 {
+	if len(*fieldNameFlag) == 0 {
 		fmt.Println("Field name file name must be specified")
 
 		return
@@ -42,8 +44,24 @@ func main() {
 
 	writer := multipart.NewWriter(&body)
 
+	parsedData, err := url.ParseQuery(*dataFlag)
+
+	if err != nil {
+		fmt.Println("Error parsing data:", err)
+
+		return
+	}
+
+	for k, v := range parsedData {
+		if err = writer.WriteField(k, v[0]); err != nil {
+			fmt.Println("Error writing data:", err)
+
+			return
+		}
+	}
+
 	for _, filePath := range filePaths {
-		err := addFileToWriter(writer, filePath, *fieldName)
+		err := addFileToWriter(writer, filePath, *fieldNameFlag)
 
 		if err != nil {
 			fmt.Println("Error adding file:", err)
@@ -52,7 +70,7 @@ func main() {
 		}
 	}
 
-	err := writer.Close()
+	err = writer.Close()
 
 	if err != nil {
 		fmt.Println("Error closing writer:", err)
@@ -60,7 +78,7 @@ func main() {
 		return
 	}
 
-	resp, err := http.Post(*url, writer.FormDataContentType(), &body)
+	resp, err := http.Post(*urlFlag, writer.FormDataContentType(), &body)
 
 	if err != nil {
 		fmt.Println("Error sending request:", err)
